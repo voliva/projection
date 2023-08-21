@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+<html>
+  <!--
+    This is a static html file used to display the wasm build.
+    In order to generate the build
+     - Run `wasm-pack build --release --target web` in this directory.
+  -->
+
+  <head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+    <link rel="stylesheet" href="https://slint.dev/css/demos-v1.css" />
+  </head>
+
+  <body>
+    <div id="spinner" style="position: relative">
+      <div class="spinner">Loading...</div>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script type="module">
+      import init from "./pkg/projection.js";
+      init().finally(() => {
+        document.getElementById("spinner").remove();
+      });
+    </script>
+  </body>
+</html>
