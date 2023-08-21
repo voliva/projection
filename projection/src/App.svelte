@@ -3,12 +3,13 @@
   import { getPixel, imageLoaded } from "./source";
   import { mercator, normalize } from "./projection";
   import { createRotation } from "./rotation";
+  import { ortogonal } from "./projection/ortogonal";
 
   let canvasElement: HTMLCanvasElement;
 
   const projection = mercator();
 
-  let angle = Math.PI / 2.0;
+  let angle = (0 * Math.PI) / 2.0;
 
   $: rotate = createRotation(angle);
 
@@ -48,6 +49,28 @@
       }
     }
   }
+
+  let orientationElement: HTMLCanvasElement;
+  const orientationProjection = ortogonal();
+  $: {
+    if (ready) {
+      const { width, height } = orientationElement;
+      const context = orientationElement.getContext("2d");
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const destCoord = normalize({ x, y }, width, height);
+          let spherical = orientationProjection.toSpherical(destCoord);
+          if (Number.isNaN(spherical.theta) || Number.isNaN(spherical.phi)) {
+            continue;
+          }
+          spherical = rotate(spherical);
+          const { r, g, b } = getPixel(spherical);
+          context.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
+          context.fillRect(x, y, 1, 1);
+        }
+      }
+    }
+  }
 </script>
 
 <main>
@@ -69,12 +92,14 @@
     />
     <p>{((angle * 180) / Math.PI).toFixed(2)}º</p>
   </div>
+  <canvas bind:this={orientationElement} width="100" height="100" />
 </main>
 
 <style>
   main {
     display: flex;
     flex-direction: column;
+    align-items: center;
   }
   .angle-input {
     display: flex;
