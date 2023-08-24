@@ -14,7 +14,7 @@
 
   let canvasElement: HTMLCanvasElement;
 
-  const projection = gnomonic();
+  const projection = lambert();
 
   let angle = 0;
   let selectedAxis: number[] | null = null;
@@ -39,7 +39,7 @@
     await imageLoaded;
     ready = true;
 
-    committedRotation = createRotation(axis.z, Math.PI / 2);
+    // committedRotation = createRotation(axis.x, Math.PI / 2);
   });
 
   $: {
@@ -57,16 +57,29 @@
   $: {
     if (ready) {
       const { width, height } = canvasElement;
-      const context = canvasElement.getContext("2d");
+      const context = canvasElement.getContext("2d")!;
       for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
           const destCoord = normalize({ x, y }, width, height);
           let spherical = projection.toSpherical(destCoord);
+          if (!spherical) continue;
+
           spherical = rotate(rotationMatrix, spherical);
           const { r, g, b } = getPixel(spherical);
           context.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
           context.fillRect(x, y, 1, 1);
         }
+      }
+
+      // Draw center
+      if (!isActive) {
+        context.strokeStyle = "darkred";
+        context.lineWidth = 1;
+        context.moveTo(width / 2 - width * 0.01, height / 2);
+        context.lineTo(width / 2 + width * 0.01, height / 2);
+        context.moveTo(width / 2, height / 2 - height * 0.01);
+        context.lineTo(width / 2, height / 2 + height * 0.01);
+        context.stroke();
       }
     }
   }
@@ -76,12 +89,15 @@
   $: {
     if (ready) {
       const { width, height } = orientationElement;
-      const context = orientationElement.getContext("2d");
+      const context = orientationElement.getContext("2d")!;
       for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
-          const destCoord = normalize({ x, y }, width, height);
+          const destCoord = {
+            x: (x - width / 2) / width,
+            y: (height / 2 - y) / height,
+          };
           let spherical = orientationProjection.toSpherical(destCoord);
-          if (Number.isNaN(spherical.theta) || Number.isNaN(spherical.phi)) {
+          if (!spherical) {
             continue;
           }
           spherical = rotate(rotationMatrix, spherical);
@@ -90,6 +106,15 @@
           context.fillRect(x, y, 1, 1);
         }
       }
+
+      // Draw center
+      context.strokeStyle = "darkred";
+      context.lineWidth = 1;
+      context.moveTo(width / 2 - width * 0.01, height / 2);
+      context.lineTo(width / 2 + width * 0.01, height / 2);
+      context.moveTo(width / 2, height / 2 - height * 0.01);
+      context.lineTo(width / 2, height / 2 + height * 0.01);
+      context.stroke();
     }
   }
 </script>
@@ -101,38 +126,9 @@
     height="500"
     style="width: 500px; height: 500px;"
   />
-  <div class="angle-input">
-    <p>spin</p>
-    <input
-      type="range"
-      min={-Math.PI}
-      max={Math.PI}
-      step={0.01}
-      on:mousedown={() => {
-        selectedAxis = axis.x;
-      }}
-      on:mouseup={commit}
-      value={selectedAxis === axis.x ? angle : 0}
-      on:input={(evt) => (angle = Number(evt.currentTarget.value))}
-    />
-  </div>
-  <div class="angle-input">
-    <input
-      type="range"
-      min={-Math.PI}
-      max={Math.PI}
-      step={0.01}
-      on:mousedown={() => {
-        selectedAxis = axis.y;
-      }}
-      on:mouseup={commit}
-      value={selectedAxis === axis.y ? angle : 0}
-      on:input={(evt) => (angle = Number(evt.currentTarget.value))}
-    />
-  </div>
-  <div class="vertical-input-container">
-    <canvas bind:this={orientationElement} width="100" height="100" />
+  <div class="orto">
     <div class="angle-input">
+      <p>spin</p>
       <input
         type="range"
         min={-Math.PI}
@@ -146,11 +142,47 @@
         on:input={(evt) => (angle = Number(evt.currentTarget.value))}
       />
     </div>
+    <div class="vertical-input-container">
+      <canvas bind:this={orientationElement} width="100" height="100" />
+      <div class="angle-input">
+        <input
+          type="range"
+          min={-Math.PI}
+          max={Math.PI}
+          step={0.01}
+          on:mousedown={() => {
+            selectedAxis = axis.x;
+          }}
+          on:mouseup={commit}
+          value={selectedAxis === axis.x ? angle : 0}
+          on:input={(evt) => (angle = Number(evt.currentTarget.value))}
+        />
+      </div>
+    </div>
+    <div class="angle-input">
+      <input
+        type="range"
+        min={-Math.PI}
+        max={Math.PI}
+        step={0.01}
+        on:mousedown={() => {
+          selectedAxis = axis.y;
+        }}
+        on:mouseup={commit}
+        value={selectedAxis === axis.y ? angle : 0}
+        on:input={(evt) => (angle = Number(evt.currentTarget.value))}
+      />
+    </div>
   </div>
 </main>
 
 <style>
   main {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .orto {
     display: flex;
     flex-direction: column;
     align-items: center;

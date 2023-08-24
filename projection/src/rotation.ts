@@ -1,5 +1,9 @@
 import { add, identity, multiply, square, Matrix } from "mathjs";
-import type { Spherical } from "./projection";
+import {
+  sphericalToCartesian,
+  type Spherical,
+  cartesianToSpherical,
+} from "./projection";
 
 export const axis = {
   x: [1, 0, 0],
@@ -25,20 +29,15 @@ export function createRotation(axis: number[], angle: number) {
 
 export function rotate(
   rotationMatrix: Matrix,
-  { phi, theta }: Spherical
+  spherical: Spherical
 ): Spherical {
-  const original_vec = [
-    [Math.cos(theta) * Math.cos(phi)],
-    [Math.sin(phi)],
-    [Math.sin(theta) * Math.cos(phi)],
-  ];
+  const { x, y, z } = sphericalToCartesian(spherical);
+  const original_vec = [[x], [y], [z]];
   const rotated_vec = multiply(rotationMatrix, original_vec) as Matrix;
 
-  const resultPhi = Math.asin(rotated_vec.get([1, 0]));
-  const resultTheta = Math.atan2(
-    rotated_vec.get([2, 0]),
-    rotated_vec.get([0, 0])
-  );
-
-  return { phi: resultPhi, theta: resultTheta };
+  return cartesianToSpherical({
+    x: rotated_vec.get([0, 0]),
+    y: rotated_vec.get([1, 0]),
+    z: rotated_vec.get([2, 0]),
+  });
 }
