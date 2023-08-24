@@ -1,17 +1,17 @@
 import { type Projection } from "./projection";
 
 // https://en.wikipedia.org/wiki/Orthographic_map_projection
-export function ortogonal(): Projection {
+export function ortogonal(yScale = 1): Projection {
   return {
     fromSpherical(spherical) {
       const x = Math.cos(spherical.phi) * Math.sin(spherical.theta);
-      const y = Math.sin(spherical.phi);
+      const y = Math.sin(spherical.phi) * yScale;
 
       return { x: x / 2, y: y / 2 };
     },
     toSpherical({ x, y }) {
       x = x * 2;
-      y = y * 2;
+      y = (y * 2) / yScale;
       const p = Math.sqrt(x * x + y * y);
       const c = Math.asin(p);
 

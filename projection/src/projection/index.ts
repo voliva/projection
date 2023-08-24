@@ -4,3 +4,4 @@ export * from "./lambert";
 export * from "./mercator";
 export * from "./normalization";
 export * from "./projection";
+export * from "./ortogonal";
