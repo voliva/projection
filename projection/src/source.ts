@@ -10,7 +10,7 @@ export const imageLoaded = new Promise<HTMLImageElement>((resolve) => {
 let imageData: ImageData | null = null;
 imageLoaded.then((img) => {
   const canvas = new OffscreenCanvas(img.naturalWidth, img.naturalHeight);
-  const context = canvas.getContext("2d");
+  const context = canvas.getContext("2d")!;
   context.drawImage(img, 0, 0);
   imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 });
@@ -19,13 +19,17 @@ const projection = mercator();
 export function getPixel(coord: Spherical) {
   if (!imageData) throw new Error("source image not loaded yet");
 
-  const { x, y } = denormalize(
-    projection.fromSpherical(coord),
-    imageData.width,
-    imageData.height
-  );
+  const normalized = projection.fromSpherical(coord);
+  if (!normalized) {
+    return { r: 0, g: 0, b: 0 };
+  }
+
+  const { x, y } = denormalize(normalized, imageData.width, imageData.height);
 
   const idx = (y * imageData.width + x) * 4;
+  if (idx >= imageData.data.length || idx < 0) {
+    return { r: 0, g: 0, b: 0 };
+  }
 
   return {
     r: imageData.data[idx],

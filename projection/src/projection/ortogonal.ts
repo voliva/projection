@@ -1,25 +1,26 @@
-import type { Projection } from "./projection";
+import { type Projection } from "./projection";
 
-export function ortogonal(): Projection {
+// https://en.wikipedia.org/wiki/Orthographic_map_projection
+export function ortogonal(yScale = 1): Projection {
   return {
-    fromSpherical({ theta, phi }) {
-      if (theta > Math.PI) return { x: NaN, y: NaN };
-      return { x: Math.sin(theta), y: Math.sin(phi) };
+    fromSpherical(spherical) {
+      const x = Math.cos(spherical.phi) * Math.sin(spherical.theta);
+      const y = Math.sin(spherical.phi) * yScale;
+
+      return { x: x / 2, y: y / 2 };
     },
     toSpherical({ x, y }) {
-      const centeredX = (x - 0.5) * 2;
-      const centeredY = y * 2;
-      if (centeredX * centeredX + centeredY * centeredY > 1) {
-        return { phi: NaN, theta: NaN };
-      }
-      const phi = Math.asin(centeredY);
-      const theta =
-        Math.atan2(centeredX, Math.sqrt(1 - centeredY * centeredY)) + Math.PI;
+      x = x * 2;
+      y = (y * 2) / yScale;
+      const p = Math.sqrt(x * x + y * y);
+      const c = Math.asin(p);
 
-      return {
-        phi,
-        theta,
-      };
+      const phi = Math.asin((y * Math.sin(c)) / p);
+      const theta = Math.atan((x * Math.sin(c)) / (p * Math.cos(c)));
+
+      if (Number.isNaN(phi) || Number.isNaN(theta)) return null;
+
+      return { phi, theta };
     },
   };
 }
