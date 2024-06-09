@@ -6,6 +6,7 @@
   import fragmentShader from "./assets/fragment.glsl?raw";
   import vertexShader from "./assets/vertex.glsl?raw";
   import { interactivity } from "@threlte/extras";
+  import { createRotation, axis, to_matrix } from "./rotation";
 
   import {
     AmbientLight,
@@ -14,18 +15,25 @@
     Vector3,
   } from "three";
   import { useLoader } from "@threlte/core";
+  import { multiply } from "mathjs";
 
   const texture = useLoader(TextureLoader).load(textureUrl);
 
   interactivity();
   let rotation = 0;
 
+  $: rotationMatrix = multiply(
+    createRotation(axis.x, rotation),
+    createRotation(axis.y, rotation),
+    createRotation(axis.z, rotation / 2)
+  );
+
   const size = 850;
 
   let clear = 0;
   $: {
-    clearInterval(clear);
-    clear = setInterval(() => (rotation += 0.01), 33);
+    cancelAnimationFrame(clear);
+    clear = requestAnimationFrame(() => (rotation += 0.01), 33);
   }
 </script>
 
@@ -59,8 +67,12 @@
         rotation: {
           value: 0,
         },
+        rotation_matrix: {
+          value: [],
+        },
       }}
       uniforms.rotation.value={rotation}
+      uniforms.rotation_matrix.value={to_matrix(rotationMatrix)}
     />
   {/await}
 </T.Mesh>
