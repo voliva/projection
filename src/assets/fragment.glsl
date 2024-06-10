@@ -1,4 +1,4 @@
-uniform sampler2D texture1;
+uniform sampler2D world_map;
 uniform float rotation;
 uniform mat3 rotation_matrix;
 
@@ -28,21 +28,14 @@ void main() {
     vec3 rotated = cartesian * rotation_matrix;
     spherical = cartesian_to_spherical(rotated);
 
-    // spherical.x += rotation * 2.;
-    // while (spherical.y > 3.1415/2.) {
-    //     spherical.y -= 3.1415;
-    // }
-    // while (spherical.x > 3.1415) {
-    //     spherical.x -= 2. * 3.1415;
-    // }
     vec2 converted = from_spherical(spherical);
 
     vec2 origin = vec2(converted.x + 0.5, converted.y + 0.5);
 
-    gl_FragColor = texture2D(texture1, origin);
+    gl_FragColor = texture2D(world_map, origin);
 }
 
-float scale = 2. * 1.85;
+float scale = 6.;
 
 vec2 to_spherical(vec2 xy) {
     float phi = atan(sinh(xy.y * scale));

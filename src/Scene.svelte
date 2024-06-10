@@ -3,7 +3,6 @@
   import { quadOut } from "svelte/easing";
   import { tweened } from "svelte/motion";
   import textureUrl from "./assets/mercator_projection.jpeg";
-  import fragmentShader from "./assets/fragment.glsl?raw";
   import vertexShader from "./assets/vertex.glsl?raw";
   import { interactivity } from "@threlte/extras";
   import { createRotation, axis, to_matrix } from "./rotation";
@@ -16,6 +15,7 @@
   } from "three";
   import { useLoader } from "@threlte/core";
   import { multiply } from "mathjs";
+  import { mercatorProjection } from "./assets/projectionShader";
 
   const texture = useLoader(TextureLoader).load(textureUrl);
 
@@ -27,6 +27,7 @@
     createRotation(axis.y, rotation / 3),
     createRotation(axis.z, rotation / 2)
   );
+  // $: rotationMatrix = createRotation(axis.x, -Math.PI / 2);
 
   const size = 850;
 
@@ -57,10 +58,10 @@
   <T.MeshStandardMaterial color="gray" />
   {#await texture then value}
     <T.ShaderMaterial
-      {fragmentShader}
+      fragmentShader={mercatorProjection}
       {vertexShader}
       uniforms={{
-        texture1: {
+        world_map: {
           type: "t",
           value,
         },
