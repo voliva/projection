@@ -24,7 +24,7 @@
 
   $: rotationMatrix = multiply(
     createRotation(axis.x, rotation),
-    createRotation(axis.y, rotation),
+    createRotation(axis.y, rotation / 3),
     createRotation(axis.z, rotation / 2)
   );
 
