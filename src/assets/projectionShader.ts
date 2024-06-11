@@ -34,7 +34,11 @@ void main() {
 
     vec2 origin = vec2(converted.x + 0.5, converted.y + 0.5);
 
-    gl_FragColor = texture2D(world_map, origin);
+    if (isnan(origin.x) || isnan(origin.y)) {
+        gl_FragColor = vec4(0.0);
+    } else {
+        gl_FragColor = texture2D(world_map, origin);
+    }
 }
 
 vec2 to_spherical(vec2 xy) {
