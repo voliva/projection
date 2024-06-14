@@ -1,7 +1,6 @@
 const createProjectionShader = (toShpericalBody: string) => {
   return `
 uniform sampler2D world_map;
-uniform float rotation;
 uniform mat3 rotation_matrix;
 
 varying vec2 vUv;

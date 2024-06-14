@@ -1,41 +1,30 @@
-<script>
-  import { T, useTask } from "@threlte/core";
-  import { quadOut } from "svelte/easing";
-  import { tweened } from "svelte/motion";
+<script lang="ts">
+  import { T, useLoader, useThrelte } from "@threlte/core";
+  import { type Matrix } from "mathjs";
+  import { TextureLoader, Vector2, Vector4 } from "three";
   import textureUrl from "./assets/mercator_projection.jpeg";
   import vertexShader from "./assets/vertex.glsl?raw";
-  import { interactivity } from "@threlte/extras";
-  import { createRotation, axis, to_matrix } from "./rotation";
+  import { to_matrix } from "./rotation";
+  import { derived } from "svelte/store";
 
-  import {
-    AmbientLight,
-    OrthographicCamera,
-    TextureLoader,
-    Vector3,
-  } from "three";
-  import { useLoader } from "@threlte/core";
-  import { multiply } from "mathjs";
-  import { mercatorProjection } from "./assets/projectionShader";
+  export let projectionShader: string;
+  export let rotationMatrix: Matrix;
+
+  const threlte = useThrelte();
+
+  const size = derived(threlte.size, (size) =>
+    Math.min(size.width, size.height)
+  );
+
+  // threlte.size$;
+
+  // $: console.log(threlte);
+  // $: size = (() => {
+  //   const size = threlte.renderer.getSize(new Vector2());
+  //   return Math.min(size.x, size.y);
+  // })();
 
   const texture = useLoader(TextureLoader).load(textureUrl);
-
-  interactivity();
-  let rotation = 0;
-
-  $: rotationMatrix = multiply(
-    createRotation(axis.x, rotation),
-    createRotation(axis.y, rotation / 3),
-    createRotation(axis.z, rotation / 2)
-  );
-  // $: rotationMatrix = createRotation(axis.x, -Math.PI / 2);
-
-  const size = 850;
-
-  let clear = 0;
-  $: {
-    cancelAnimationFrame(clear);
-    clear = requestAnimationFrame(() => (rotation += 0.01), 33);
-  }
 </script>
 
 <T.AmbientLight />
@@ -49,31 +38,24 @@
 />
 
 <T.Mesh receiveShadow>
-  <T.PlaneGeometry args={[size, size]} />
-  <!-- {#if $texture}
-    <T.MeshStandardMaterial map={$texture} />
-  {:else}
-    <T.MeshStandardMaterial color="pink" />
-  {/if} -->
+  <T.PlaneGeometry args={[$size, $size]} />
   <T.MeshStandardMaterial color="gray" />
   {#await texture then value}
-    <T.ShaderMaterial
-      fragmentShader={mercatorProjection}
-      {vertexShader}
-      uniforms={{
-        world_map: {
-          type: "t",
-          value,
-        },
-        rotation: {
-          value: 0,
-        },
-        rotation_matrix: {
-          value: [],
-        },
-      }}
-      uniforms.rotation.value={rotation}
-      uniforms.rotation_matrix.value={to_matrix(rotationMatrix)}
-    />
+    {#key projectionShader}
+      <T.ShaderMaterial
+        fragmentShader={projectionShader}
+        {vertexShader}
+        uniforms={{
+          world_map: {
+            type: "t",
+            value,
+          },
+          rotation_matrix: {
+            value: [],
+          },
+        }}
+        uniforms.rotation_matrix.value={to_matrix(rotationMatrix)}
+      />
+    {/key}
   {/await}
 </T.Mesh>
