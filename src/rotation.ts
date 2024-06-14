@@ -1,4 +1,4 @@
-import { add, identity, multiply, square, Matrix } from "mathjs";
+import { add, identity, multiply, Matrix, index, subset } from "mathjs";
 import {
   sphericalToCartesian,
   type Spherical,
@@ -40,4 +40,15 @@ export function rotate(
     y: rotated_vec.get([1, 0]),
     z: rotated_vec.get([2, 0]),
   });
+}
+
+export function to_matrix(mat: Matrix, size = 3) {
+  const result: number[] = [];
+  for (let i = 0; i < size; i++) {
+    for (let j = 0; j < size; j++) {
+      // result[i] = [];
+      result.push(subset(mat, index(i, j)) as any as number);
+    }
+  }
+  return result;
 }

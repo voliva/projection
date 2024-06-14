@@ -1,33 +1,31 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { getPixel, imageLoaded } from "./source";
+  import { Canvas } from "@threlte/core";
+  import Scene from "./Scene.svelte";
   import {
     equiRectangular,
-    gnomonic,
-    lambert,
-    mercator,
-    normalize,
-    ortogonal,
-  } from "./projection";
-  import { axis, createRotation, rotate } from "./rotation";
+    gnomonicProjection,
+    lambertProjection,
+    mercatorProjection,
+    ortogonalProjection,
+  } from "./assets/projectionShader";
   import { identity, multiply, type Matrix } from "mathjs";
+  import { axis, createRotation } from "./rotation";
 
   const projections = [
-    { name: "Mercator", projection: mercator() },
-    { name: "Equi-rectangular", projection: equiRectangular() },
-    { name: "Lambert", projection: lambert() },
-    { name: "Gnomonic", projection: gnomonic() },
-    { name: "Orthographic", projection: ortogonal(3) },
+    { name: "Mercator", projection: mercatorProjection },
+    { name: "Equi-rectangular", projection: equiRectangular },
+    { name: "Lambert", projection: lambertProjection },
+    { name: "Gnomonic", projection: gnomonicProjection },
+    { name: "Orthographic", projection: ortogonalProjection },
   ];
 
-  let canvasElement: HTMLCanvasElement;
-
   let selectedProjection = projections[0];
+
+  $: console.log(selectedProjection);
 
   let angle = 0;
   let selectedAxis: number[] | null = null;
   let committedRotation = identity(3) as Matrix;
-
   $: tmpRotation =
     selectedAxis === null
       ? (identity(3) as Matrix)
@@ -52,108 +50,23 @@
       );
     };
   }
-
-  let ready = false;
-  $: isActive = selectedAxis !== null;
-
-  onMount(async () => {
-    await imageLoaded;
-    ready = true;
-
-    // committedRotation = createRotation(axis.x, Math.PI / 2);
-  });
-
-  $: {
-    if (ready) {
-      if (isActive) {
-        canvasElement.width = 50;
-        canvasElement.height = 50;
-      } else {
-        canvasElement.width = 800;
-        canvasElement.height = 800;
-      }
-    }
-  }
-
-  $: {
-    if (ready) {
-      const { width, height } = canvasElement;
-      const context = canvasElement.getContext("2d")!;
-      context.clearRect(0, 0, width, height);
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-          const destCoord = normalize({ x, y }, width, height);
-          let spherical = selectedProjection.projection.toSpherical(destCoord);
-          if (!spherical) continue;
-
-          spherical = rotate(rotationMatrix, spherical);
-          const { r, g, b } = getPixel(spherical);
-          context.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
-          context.fillRect(x, y, 1, 1);
-        }
-      }
-
-      // Draw center
-      if (!isActive) {
-        context.strokeStyle = "darkred";
-        context.lineWidth = 1;
-        context.moveTo(width / 2 - width * 0.01, height / 2);
-        context.lineTo(width / 2 + width * 0.01, height / 2);
-        context.moveTo(width / 2, height / 2 - height * 0.01);
-        context.lineTo(width / 2, height / 2 + height * 0.01);
-        context.stroke();
-      }
-    }
-  }
-
-  let orientationElement: HTMLCanvasElement;
-  const orientationProjection = ortogonal();
-  $: {
-    if (ready) {
-      const { width, height } = orientationElement;
-      const context = orientationElement.getContext("2d")!;
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-          const destCoord = {
-            x: (x - width / 2) / width,
-            y: (height / 2 - y) / height,
-          };
-          let spherical = orientationProjection.toSpherical(destCoord);
-          if (!spherical) {
-            continue;
-          }
-          spherical = rotate(rotationMatrix, spherical);
-          const { r, g, b } = getPixel(spherical);
-          context.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
-          context.fillRect(x, y, 1, 1);
-        }
-      }
-
-      // Draw center
-      context.strokeStyle = "darkred";
-      context.lineWidth = 1;
-      context.moveTo(width / 2 - width * 0.01, height / 2);
-      context.lineTo(width / 2 + width * 0.01, height / 2);
-      context.moveTo(width / 2, height / 2 - height * 0.01);
-      context.lineTo(width / 2, height / 2 + height * 0.01);
-      context.stroke();
-    }
-  }
 </script>
 
 <main>
-  <div class="canvas">
+  <div class="canvas-container">
     <select bind:value={selectedProjection}>
       {#each projections as projection}
         <option value={projection}>{projection.name}</option>
       {/each}
     </select>
-    <canvas
-      bind:this={canvasElement}
-      width="800"
-      height="800"
-      style="width: 800px; height: 800px;"
-    />
+    <div class="canvas">
+      <Canvas shadows={false}>
+        <Scene
+          projectionShader={selectedProjection.projection}
+          {rotationMatrix}
+        />
+      </Canvas>
+    </div>
   </div>
   <div class="orto">
     <div class="angle-input">
@@ -172,7 +85,11 @@
       />
     </div>
     <div class="vertical-input-container">
-      <canvas bind:this={orientationElement} width="100" height="100" />
+      <div style="width: 150px; height: 150px;">
+        <Canvas>
+          <Scene projectionShader={ortogonalProjection} {rotationMatrix} />
+        </Canvas>
+      </div>
       <input
         type="range"
         min={-Math.PI}
@@ -217,14 +134,24 @@
 <style>
   main {
     display: flex;
+    overflow: hidden;
     align-items: center;
     gap: 1rem;
+    width: 100%;
   }
-  .canvas {
+  .canvas-container {
+    position: relative;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 1rem;
+    flex: 1 1 auto;
+    height: 100%;
+  }
+  .canvas {
+    flex: 1 1 auto;
+    width: 100%;
   }
   .orto {
     display: flex;
