@@ -106,7 +106,7 @@ export const gnomonicProjection = createProjectionShader(
 
 export const equiRectangular = createProjectionShader(
   `
-    xy.y = xy.y / 1.85;
+    xy.y = xy.y / 2.14;
 
     return vec2(
         xy.x * 2. * 3.1415,
