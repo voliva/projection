@@ -21,8 +21,6 @@
 
   let selectedProjection = projections[0];
 
-  $: console.log(selectedProjection);
-
   let angle = 0;
   let selectedAxis: number[] | null = null;
   let committedRotation = identity(3) as Matrix;
@@ -50,6 +48,35 @@
       );
     };
   }
+
+  function startDrag(evt: MouseEvent) {
+    const start = { x: evt.screenX, y: evt.screenY };
+
+    const updateRotation = (evt: MouseEvent) => {
+      const vec = { x: evt.screenX - start.x, y: evt.screenY - start.y };
+      const vecLength = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
+      const unitVec =
+        vecLength > 0
+          ? { x: -vec.x / vecLength, y: -vec.y / vecLength }
+          : { x: 0, y: 0 };
+      selectedAxis = [
+        axis.y[0] * unitVec.x + axis.x[0] * unitVec.y,
+        axis.y[1] * unitVec.x + axis.x[1] * unitVec.y,
+        axis.y[2] * unitVec.x + axis.x[2] * unitVec.y,
+      ];
+      angle = vecLength / 180;
+    };
+
+    const finishDrag = (evt: MouseEvent) => {
+      updateRotation(evt);
+      commit();
+
+      window.removeEventListener("mousemove", updateRotation);
+      window.removeEventListener("mouseup", finishDrag);
+    };
+    window.addEventListener("mousemove", updateRotation);
+    window.addEventListener("mouseup", finishDrag);
+  }
 </script>
 
 <main>
@@ -59,7 +86,8 @@
         <option value={projection}>{projection.name}</option>
       {/each}
     </select>
-    <div class="canvas">
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <div class="canvas" on:mousedown={startDrag}>
       <Canvas shadows={false}>
         <Scene
           projectionShader={selectedProjection.projection}
@@ -85,7 +113,8 @@
       />
     </div>
     <div class="vertical-input-container">
-      <div style="width: 150px; height: 150px;">
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <div style="width: 150px; height: 150px;" on:mousedown={startDrag}>
         <Canvas>
           <Scene projectionShader={ortogonalProjection} {rotationMatrix} />
         </Canvas>

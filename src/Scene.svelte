@@ -1,7 +1,7 @@
 <script lang="ts">
   import { T, useLoader, useThrelte } from "@threlte/core";
   import { type Matrix } from "mathjs";
-  import { TextureLoader, Vector2, Vector4 } from "three";
+  import { TextureLoader } from "three";
   import textureUrl from "./assets/mercator_projection.jpeg";
   import vertexShader from "./assets/vertex.glsl?raw";
   import { to_matrix } from "./rotation";
@@ -15,14 +15,6 @@
   const size = derived(threlte.size, (size) =>
     Math.min(size.width, size.height)
   );
-
-  // threlte.size$;
-
-  // $: console.log(threlte);
-  // $: size = (() => {
-  //   const size = threlte.renderer.getSize(new Vector2());
-  //   return Math.min(size.x, size.y);
-  // })();
 
   const texture = useLoader(TextureLoader).load(textureUrl);
 </script>
