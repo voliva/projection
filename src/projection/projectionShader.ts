@@ -1,5 +1,16 @@
+/*
+x and y range are [-0.5,0.5]
+x left -> right
+y bottom -> top
+
+returns vec2(theta, phi)
+phi is latitude, "y coordinate". 0 = equator, PI/2 = Noth pole, -PI/2 = South Pole
+theta is longitude, "x coordinate". 0 = center, PI = right, -PI = left
+*/
+
+export const createProjectionShader = (toSphericalBody: string, extra = "") => {
+  return `
 uniform sampler2D world_map;
-uniform float rotation;
 uniform mat3 rotation_matrix;
 
 varying vec2 vUv;
@@ -32,26 +43,27 @@ void main() {
 
     vec2 origin = vec2(converted.x + 0.5, converted.y + 0.5);
 
-    gl_FragColor = texture2D(world_map, origin);
+    if (isnan(origin.x) || isnan(origin.y)) {
+        gl_FragColor = vec4(0.0);
+    } else {
+        gl_FragColor = texture2D(world_map, origin);
+    }
 }
 
-float scale = 6.;
+${extra}
 
 vec2 to_spherical(vec2 xy) {
-    float phi = atan(sinh(xy.y * scale));
-
-    return vec2(
-        xy.x * 2.0 * 3.1415,
-        phi
-    );
+    ${toSphericalBody}
 }
 
 vec2 from_spherical(vec2 tp) {
     float sec = 1.0 / cos(tp.y);
-    float y = log(sec + tan(tp.y)) / scale;
+    float y = log(sec + tan(tp.y)) / 6.0;
 
     return vec2(
         tp.x / (2.0 * 3.1415),
         max(-50., min(50., y))
     );
 }
+    `;
+};

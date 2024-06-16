@@ -1,9 +1,4 @@
 import { add, identity, multiply, Matrix, index, subset } from "mathjs";
-import {
-  sphericalToCartesian,
-  type Spherical,
-  cartesianToSpherical,
-} from "./projection";
 
 export const axis = {
   x: [1, 0, 0],
@@ -51,4 +46,44 @@ export function to_matrix(mat: Matrix, size = 3) {
     }
   }
   return result;
+}
+
+/**
+ *    y
+ *    |__x
+ *   /
+ *  z
+ * Radius always 1
+ */
+export interface Cartesian3D {
+  x: number;
+  y: number;
+  z: number;
+}
+
+function sphericalToCartesian({ theta, phi }: Spherical): Cartesian3D {
+  return {
+    x: Math.sin(theta) * Math.cos(phi),
+    y: Math.sin(phi),
+    z: Math.cos(theta) * Math.cos(phi),
+  };
+}
+
+function cartesianToSpherical({ x, y, z }: Cartesian3D): Spherical {
+  return {
+    phi: Math.asin(y),
+    theta: Math.atan2(x, z),
+  };
+}
+
+/**
+ * phi: [-𝜋/2,𝜋/2]: vertical angle. positive = north, negative = south
+ * theta: [-𝜋,𝜋]: horizontal angle. positive = east, negative = west
+ *
+ * phi = 0 represents equator
+ * theta = 0 represents Greenwich meridian
+ */
+export interface Spherical {
+  phi: number;
+  theta: number;
 }

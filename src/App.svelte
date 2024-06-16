@@ -6,8 +6,9 @@
     gnomonicProjection,
     lambertProjection,
     mercatorProjection,
-    ortogonalProjection,
-  } from "./assets/projectionShader";
+    ortographicProjection,
+    robinsonProjection,
+  } from "./projection";
   import { identity, multiply, type Matrix } from "mathjs";
   import { axis, createRotation } from "./rotation";
 
@@ -15,8 +16,9 @@
     { name: "Mercator", projection: mercatorProjection },
     { name: "Equi-rectangular", projection: equiRectangular },
     { name: "Lambert", projection: lambertProjection },
+    { name: "Robinson", projection: robinsonProjection },
     { name: "Gnomonic", projection: gnomonicProjection },
-    { name: "Orthographic", projection: ortogonalProjection },
+    { name: "Orthographic", projection: ortographicProjection },
   ];
 
   let selectedProjection = projections[0];
@@ -116,7 +118,7 @@
       <!-- svelte-ignore a11y-no-static-element-interactions -->
       <div style="width: 150px; height: 150px;" on:mousedown={startDrag}>
         <Canvas>
-          <Scene projectionShader={ortogonalProjection} {rotationMatrix} />
+          <Scene projectionShader={ortographicProjection} {rotationMatrix} />
         </Canvas>
       </div>
       <input
