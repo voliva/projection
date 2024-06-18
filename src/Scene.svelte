@@ -3,6 +3,7 @@
   import { type Matrix } from "mathjs";
   import { TextureLoader } from "three";
   import textureUrl from "./assets/mercator_projection.jpeg";
+  // import textureUrl from "./assets/outline.png";
   import vertexShader from "./assets/vertex.glsl?raw";
   import { to_matrix } from "./rotation";
   import { derived } from "svelte/store";

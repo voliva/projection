@@ -1,25 +1,11 @@
 <script lang="ts">
   import { Canvas } from "@threlte/core";
-  import Scene from "./Scene.svelte";
-  import {
-    equiRectangular,
-    gnomonicProjection,
-    lambertProjection,
-    mercatorProjection,
-    ortographicProjection,
-    robinsonProjection,
-  } from "./projection";
   import { identity, multiply, type Matrix } from "mathjs";
+  import Scene from "./Scene.svelte";
+  import { ortographicProjection } from "./projection";
+  import { projections } from "./projections";
   import { axis, createRotation } from "./rotation";
-
-  const projections = [
-    { name: "Mercator", projection: mercatorProjection },
-    { name: "Equi-rectangular", projection: equiRectangular },
-    { name: "Lambert", projection: lambertProjection },
-    { name: "Robinson", projection: robinsonProjection },
-    { name: "Gnomonic", projection: gnomonicProjection },
-    { name: "Orthographic", projection: ortographicProjection },
-  ];
+  import ProjectionSelector from "./ProjectionSelector.svelte";
 
   let selectedProjection = projections[0];
 
@@ -83,11 +69,7 @@
 
 <main>
   <div class="canvas-container">
-    <select bind:value={selectedProjection}>
-      {#each projections as projection}
-        <option value={projection}>{projection.name}</option>
-      {/each}
-    </select>
+    <ProjectionSelector bind:selectedProjection />
     <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div class="canvas" on:mousedown={startDrag}>
       <Canvas shadows={false}>
