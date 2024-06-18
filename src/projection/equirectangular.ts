@@ -2,7 +2,9 @@ import { createProjectionShader } from "./projectionShader";
 
 export const equiRectangular = createProjectionShader(
   `
-    xy.y = xy.y / 2.14;
+    if (abs(xy.y) > 0.25) {
+      return vec2(NaN, NaN);
+    }
 
     return vec2(
         xy.x * 2. * 3.1415,

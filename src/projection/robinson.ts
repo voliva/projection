@@ -39,7 +39,6 @@ theta is longitude, "x coordinate". 0 = center, PI = right, -PI = left
 export const robinsonProjection = createProjectionShader(
   `
   float x = xy.x, y = xy.y * 2.;
-  float NaN = 0.0/0.0;
 
   int i=0;
   for(;i<${yTable.length};i++) {
