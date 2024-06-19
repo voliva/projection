@@ -53,6 +53,8 @@ void main() {
 
 ${extra}
 
+#define BLANK vec2(NaN, NaN)
+
 vec2 to_spherical(vec2 xy) {
     ${toSphericalBody}
 }

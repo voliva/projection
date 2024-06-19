@@ -3,7 +3,7 @@ import { createProjectionShader } from "./projectionShader";
 export const equiRectangular = createProjectionShader(
   `
     if (abs(xy.y) > 0.25) {
-      return vec2(NaN, NaN);
+      return BLANK;
     }
 
     return vec2(

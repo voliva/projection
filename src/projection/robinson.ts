@@ -60,7 +60,7 @@ export const robinsonProjection = createProjectionShader(
   float xFactor = interpolate(xTable, start, pct);
   x = x * 2.;
   if (abs(x) > xFactor) {
-    return vec2(NaN, NaN);
+    return BLANK;
   }
   // we have to revert the scaling
   float theta = x * 3.1415 / xFactor;
