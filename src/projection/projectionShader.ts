@@ -16,6 +16,7 @@ uniform mat3 rotation_matrix;
 varying vec2 vUv;
 
 float NaN = 0.0/0.0;
+float PI = 3.1415;
 vec2 to_spherical(vec2 xy);
 vec2 from_spherical(vec2 tp);
 vec3 spherical_to_cartisian(vec2 tp) {
