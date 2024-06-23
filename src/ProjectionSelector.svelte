@@ -23,11 +23,12 @@
     list-style-type: none;
     display: flex;
     align-items: stretch;
-    justify-content: center;
     gap: 1rem;
-    flex-wrap: wrap;
     padding: 0;
     margin: 0;
+    overflow: auto;
+    max-width: 100%;
+    flex: 0 0 auto;
   }
 
   button {

@@ -37,10 +37,10 @@
     };
   }
 
-  function startDrag(evt: MouseEvent) {
+  function startDrag(evt: PointerEvent) {
     const start = { x: evt.screenX, y: evt.screenY };
 
-    const updateRotation = (evt: MouseEvent) => {
+    const updateRotation = (evt: PointerEvent) => {
       const vec = { x: evt.screenX - start.x, y: evt.screenY - start.y };
       const vecLength = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
       const unitVec =
@@ -55,15 +55,15 @@
       angle = vecLength / 180;
     };
 
-    const finishDrag = (evt: MouseEvent) => {
+    const finishDrag = (evt: PointerEvent) => {
       updateRotation(evt);
       commit();
 
-      window.removeEventListener("mousemove", updateRotation);
-      window.removeEventListener("mouseup", finishDrag);
+      window.removeEventListener("pointermove", updateRotation);
+      window.removeEventListener("pointerup", finishDrag);
     };
-    window.addEventListener("mousemove", updateRotation);
-    window.addEventListener("mouseup", finishDrag);
+    window.addEventListener("pointermove", updateRotation);
+    window.addEventListener("pointerup", finishDrag);
   }
 </script>
 
@@ -71,7 +71,7 @@
   <div class="canvas-container">
     <ProjectionSelector bind:selectedProjection />
     <!-- svelte-ignore a11y-no-static-element-interactions -->
-    <div class="canvas" on:mousedown={startDrag}>
+    <div class="canvas" on:pointerdown={startDrag}>
       <Canvas shadows={false}>
         <Scene
           projectionShader={selectedProjection.projection}
@@ -166,10 +166,18 @@
     flex: 1 1 auto;
     width: 100%;
   }
+  .canvas > :global(canvas) {
+    touch-action: none;
+  }
   .orto {
     display: flex;
     flex-direction: column;
     align-items: center;
+  }
+  @media (max-width: 760px) {
+    .orto {
+      display: none;
+    }
   }
   .angle-input {
     display: flex;
